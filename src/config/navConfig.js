@@ -1,3 +1,6 @@
+import { GeneralSettings } from "../pages/settings/General";
+import { AdvancedSettings } from "../pages/settings/Advanced";
+
 // Central config: add/remove nav items and subtopics here.
 // Each subtopic can later carry a `component` or `page` reference.
 
@@ -27,9 +30,9 @@ export const NAV_CONFIG = [
     label: "Settings",
     icon: "◎",
     subtopics: [
-      { id: "general", label: "General" },
+      { id: "general", label: "General", component: GeneralSettings },
       { id: "appearance", label: "Appearance" },
-      { id: "advanced", label: "Advanced" },
+      { id: "advanced", label: "Advanced", component: AdvancedSettings },
     ],
   },
   {

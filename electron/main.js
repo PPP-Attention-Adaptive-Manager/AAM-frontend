@@ -10,7 +10,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,  // Security setting (keep false)
       contextIsolation: true,  // Security setting (keep true)
-      webSecurity: false,
+      //webSecurity: false,
     },
     // Windows-specific: this makes it look like a normal Windows app
     titleBarStyle: 'default',
