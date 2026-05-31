@@ -1,4 +1,4 @@
-# Copilot Agent Instructions — my-desktop-app
+# Copilot Agent Instructions — AAM
 
 You are a coding assistant for an Electron + React (Vite) desktop application.
 Follow these instructions precisely for every task in this project.

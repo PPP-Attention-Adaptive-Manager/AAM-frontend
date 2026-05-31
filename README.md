@@ -1,4 +1,4 @@
-# my-desktop-app
+# AAM
 
 A desktop application built with Electron and React (Vite).
 
@@ -16,7 +16,7 @@ A desktop application built with Electron and React (Vite).
 ```bash
 # 1. Clone the repository
 git clone <repo-url>
-cd my-desktop-app
+cd AAM-frontend
 
 # 2. Install dependencies
 npm install
@@ -51,7 +51,7 @@ The app will open in an Electron window. Hot module reload (HMR) is active — c
 ## Project Structure
 
 ```
-my-desktop-app/
+AAM/
 ├── electron/
 │   ├── main.js          # Electron main process — window creation, IPC handlers
 │   └── preload.js       # Exposes safe APIs to the renderer via contextBridge

@@ -1,9 +1,9 @@
-function NavBar({ items, activeNav, onNavChange }) {
+function NavBar({ items, activeNav, onNavChange, userName, onLogout }) {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
         <span className="brand-mark">▣</span>
-        <span className="brand-name">APPNAME</span>
+        <span className="brand-name">AAM</span>
       </div>
       <ul className="navbar-links">
         {items.map((item) => (
@@ -19,8 +19,14 @@ function NavBar({ items, activeNav, onNavChange }) {
         ))}
       </ul>
       <div className="navbar-end">
+        {userName ? <span className="status-user">{userName}</span> : null}
         <span className="status-dot" />
         <span className="status-text">ONLINE</span>
+        {onLogout ? (
+          <button className="navbar-logout" type="button" onClick={onLogout}>
+            Logout
+          </button>
+        ) : null}
       </div>
     </nav>
   );

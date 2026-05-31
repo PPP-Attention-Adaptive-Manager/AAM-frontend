@@ -1,0 +1,89 @@
+.actions-page {
+  display: grid;
+  gap: 18px;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.actions-briefing-card,
+.actions-panel,
+.actions-fact-card,
+.action-card,
+.action-log-row {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(30, 31, 36, 0.96), rgba(20, 21, 24, 0.96));
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.22);
+}
+
+.actions-briefing-card {
+  padding: 22px;
+  display: grid;
+  gap: 16px;
+}
+
+.actions-fact-list,
+.actions-list,
+.actions-timeline,
+.action-log-list {
+  display: grid;
+  gap: 12px;
+}
+
+.actions-fact-card,
+.action-card,
+.action-log-row {
+  padding: 16px;
+}
+
+.actions-fact-card p,
+.action-card p,
+.action-log-row p {
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.action-card-topline,
+.action-log-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.action-card-topline strong {
+  color: var(--text-primary);
+}
+
+.action-card-topline span,
+.action-log-level {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.action-log-row {
+  align-items: flex-start;
+}
+
+.action-log-level.warn {
+  color: var(--red);
+}
+
+.action-log-level.info {
+  color: var(--green);
+}
+
+.actions-sparkline .sparkline-point {
+  animation-delay: calc(var(--i, 0) * 80ms);
+}
+
+@media (max-width: 760px) {
+  .action-card-topline,
+  .action-log-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

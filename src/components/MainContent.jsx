@@ -1,4 +1,4 @@
-function MainContent({ nav, sub }) {
+function MainContent({ nav, sub, profile, onProfileChange }) {
   const Page = sub.component;
 
   return (
@@ -17,7 +17,7 @@ function MainContent({ nav, sub }) {
 
       <div className="content-body">
         {Page ? (
-          <Page />
+          <Page profile={profile} onProfileChange={onProfileChange} />
         ) : (
           <div className="placeholder-card">
             <div className="placeholder-icon">{nav.icon}</div>

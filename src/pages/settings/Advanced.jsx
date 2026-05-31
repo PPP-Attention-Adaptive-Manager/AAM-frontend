@@ -1,38 +1,32 @@
-import { useEffect, useState } from "react";
-import "./Advanced.css";
-
-const STORAGE_KEY = "settings.advanced";
+import { useState } from 'react'
+import './Advanced.css'
 
 const VIEWING_PERMISSIONS = [
   {
     id: "listenNotifications",
     label: "Allow listening on notifications",
     description:
-      "Placeholder: scope of notification listening and why it matters for contextual awareness.",
+    'Scope of notification listening and why it matters for contextual awareness.',
   },
   {
     id: "viewBrowserTabs",
     label: "Allow viewing open browser tabs",
-    description:
-      "Placeholder: scope of browser tab visibility and why it helps provide safe assistance.",
+    description: 'Scope of browser tab visibility and why it helps provide safe assistance.',
   },
   {
     id: "viewApplications",
     label: "Allow viewing open applications",
-    description:
-      "Placeholder: scope of open application visibility and why it is important for context.",
+    description: 'Scope of open application visibility and why it is important for context.',
   },
   {
     id: "mouseTracking",
     label: "Allow mouse tracking",
-    description:
-      "Placeholder: scope of mouse movement tracking and why it supports intent recognition.",
+    description: 'Scope of mouse movement tracking and why it supports intent recognition.',
   },
   {
     id: "keyboardTracking",
     label: "Allow keyboard tracking",
-    description:
-      "Placeholder: scope of keyboard tracking and why it is important for adaptive assistance.",
+    description: 'Scope of keyboard tracking and why it is important for adaptive assistance.',
   },
 ];
 
@@ -40,20 +34,17 @@ const ACTION_PERMISSIONS = [
   {
     id: "delayNotifications",
     label: "Allow delaying notifications",
-    description:
-      "Placeholder: scope of notification delay actions and why it can reduce interruptions.",
+    description: 'Scope of notification delay actions and why it can reduce interruptions.',
   },
   {
     id: "closeTabs",
     label: "Allow closing tabs",
-    description:
-      "Placeholder: scope of browser tab closing actions and why it helps maintain focus.",
+    description: 'Scope of browser tab closing actions and why it helps maintain focus.',
   },
   {
     id: "closeApps",
     label: "Allow closing apps",
-    description:
-      "Placeholder: scope of application closing actions and why it prevents unwanted distractions.",
+    description: 'Scope of application closing actions and why it prevents unwanted distractions.',
   },
 ];
 
@@ -68,28 +59,11 @@ const DEFAULT_STATE = {
   closeApps: false,
 };
 
-export function AdvancedSettings() {
-  const [permissions, setPermissions] = useState(DEFAULT_STATE);
-
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setPermissions((current) => ({ ...current, ...parsed }));
-      }
-    } catch (error) {
-      console.warn("Could not load advanced settings", error);
-    }
-  }, []);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(permissions));
-    } catch (error) {
-      console.warn("Could not save advanced settings", error);
-    }
-  }, [permissions]);
+export function AdvancedSettings({ profile, onProfileChange }) {
+  const [permissions, setPermissions] = useState(() => ({
+    ...DEFAULT_STATE,
+    ...(profile?.advanced || {}),
+  }))
 
   const togglePermission = (id) => {
     setPermissions((current) => ({
@@ -98,8 +72,69 @@ export function AdvancedSettings() {
     }));
   };
 
+  const handleSavePermissions = async () => {
+    if (!onProfileChange) {
+      return
+    }
+
+    await onProfileChange({
+      ...profile,
+      advanced: permissions,
+    })
+  }
+
+  const handleResetOnboarding = async () => {
+    if (!onProfileChange) {
+      return
+    }
+
+    await onProfileChange({
+      ...profile,
+      firstTime: true,
+    })
+  }
+
   return (
-    <section className="settings-advanced-panel">
+    <section className="settings-advanced-panel settings-scroll">
+      <div className="auth-section profile-summary-panel">
+        <div className="auth-section-header">
+          <div>
+            <h2>Profile access</h2>
+            <p>
+              This profile lives in profile.json. You can inspect the current identity here and reset onboarding if needed.
+            </p>
+          </div>
+        </div>
+
+        <div className="profile-summary-grid">
+          <div className="profile-summary-item">
+            <span>Name</span>
+            <strong>{profile?.name || 'Unnamed'}</strong>
+          </div>
+          <div className="profile-summary-item">
+            <span>Profession</span>
+            <strong>{profile?.onboarding?.profession || 'Not set'}</strong>
+          </div>
+          <div className="profile-summary-item">
+            <span>Focus style</span>
+            <strong>{profile?.onboarding?.focus_style || 'Not set'}</strong>
+          </div>
+          <div className="profile-summary-item">
+            <span>First time</span>
+            <strong>{profile?.firstTime ? 'Yes' : 'No'}</strong>
+          </div>
+        </div>
+
+        <div className="profile-actions-row">
+          <button className="settings-action secondary" type="button" onClick={handleResetOnboarding}>
+            Reset onboarding
+          </button>
+          <button className="settings-action" type="button" onClick={handleSavePermissions}>
+            Save advanced settings
+          </button>
+        </div>
+      </div>
+
       <div className="auth-section">
         <div className="auth-section-header">
           <div>
@@ -164,6 +199,12 @@ export function AdvancedSettings() {
           ))}
         </div>
       </div>
+
+      <div className="profile-actions-row">
+        <button className="settings-action secondary" type="button" onClick={handleSavePermissions}>
+          Sync permissions
+        </button>
+      </div>
     </section>
-  );
+  )
 }

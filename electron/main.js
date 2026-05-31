@@ -1,13 +1,89 @@
+/* global process, require, __dirname */
+
 process.env.NODE_ENV = 'development'
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, ipcMain } = require('electron')
+const fs = require('fs/promises')
 const path = require('path')
 
+const PROFILE_FILE = 'profile.json'
+
+function getProfilePath() {
+  return path.join(app.getPath('userData'), PROFILE_FILE)
+}
+
+function createDefaultProfile() {
+  return {
+    firstTime: true,
+    name: '',
+    onboarding: {},
+    appearance: {
+      theme: 'amber',
+      density: 'comfortable',
+      accent: 'amber',
+    },
+    settings: {
+      launchAtStartup: false,
+      mode: 'passive',
+    },
+  }
+}
+
+function normalizeProfile(profile) {
+  const fallback = createDefaultProfile()
+
+  return {
+    ...fallback,
+    ...(profile && typeof profile === 'object' ? profile : {}),
+    onboarding: {
+      ...fallback.onboarding,
+      ...(profile && typeof profile === 'object' && profile.onboarding && typeof profile.onboarding === 'object'
+        ? profile.onboarding
+        : {}),
+    },
+    appearance: {
+      ...fallback.appearance,
+      ...(profile && typeof profile === 'object' && profile.appearance && typeof profile.appearance === 'object'
+        ? profile.appearance
+        : {}),
+    },
+    settings: {
+      ...fallback.settings,
+      ...(profile && typeof profile === 'object' && profile.settings && typeof profile.settings === 'object'
+        ? profile.settings
+        : {}),
+    },
+  }
+}
+
+async function readProfile() {
+  try {
+    const raw = await fs.readFile(getProfilePath(), 'utf8')
+    return normalizeProfile(JSON.parse(raw))
+  } catch {
+    return createDefaultProfile()
+  }
+}
+
+async function writeProfile(profile) {
+  const normalized = normalizeProfile(profile)
+  await fs.mkdir(app.getPath('userData'), { recursive: true })
+  await fs.writeFile(getProfilePath(), JSON.stringify(normalized, null, 2), 'utf8')
+  return normalized
+}
+
+ipcMain.handle('profile:get', async () => readProfile())
+ipcMain.handle('profile:save', async (_event, profile) => writeProfile(profile))
+
+// This function creates the main window of your app
 // This function creates the main window of your app
 function createWindow() {
   const win = new BrowserWindow({
-    width: 1200,           // Window width in pixels
-    height: 800,           // Window height in pixels
+    width: 960,            // Reduced width
+    height: 720,           // Reduced height
+    resizable: false,      // Prevents the user from resizing the window
+    fullscreenable: false, // Prevents maximizing to full-screen
     webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,  // Security setting (keep false)
       contextIsolation: true,  // Security setting (keep true)
       //webSecurity: false,

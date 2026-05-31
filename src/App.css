@@ -49,6 +49,42 @@ ul { list-style: none; }
   overflow: hidden;
 }
 
+.app-loading,
+.app-locked {
+  background: var(--bg-base);
+}
+
+.loading-card {
+  width: min(640px, calc(100% - 48px));
+  margin: auto;
+  padding: 32px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-surface);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.loading-kicker {
+  display: block;
+  margin-bottom: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.loading-card h1 {
+  margin-bottom: 12px;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+}
+
+.loading-card p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
 .app-body {
   display: flex;
   flex: 1;
@@ -144,6 +180,25 @@ ul { list-style: none; }
   -webkit-app-region: no-drag;
 }
 
+.navbar-logout {
+  margin-left: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+
+.navbar-logout:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+  background: var(--bg-hover);
+}
+
 .status-dot {
   width: 6px;
   height: 6px;
@@ -157,6 +212,17 @@ ul { list-style: none; }
   font-size: 10px;
   letter-spacing: 0.1em;
   color: var(--text-muted);
+}
+
+.status-user {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── Sidebar ───────────────────────────────────────────── */
@@ -289,8 +355,135 @@ ul { list-style: none; }
 
 .content-body {
   flex: 1;
-  padding: 32px;
+  padding: 24px;
   overflow-y: auto;
+}
+
+/* ── Settings editor surface ───────────────────────────── */
+.settings-scroll {
+  padding-bottom: 16px;
+}
+
+.settings-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-glow);
+  border-radius: 999px;
+  padding: 8px 10px;
+}
+
+.settings-action {
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #17130b;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.settings-action.secondary {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+}
+
+.field-stack {
+  display: grid;
+  gap: 8px;
+}
+
+.field-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.settings-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.settings-input:focus {
+  outline: none;
+  border-color: var(--border-active);
+  box-shadow: 0 0 0 3px rgba(240, 165, 0, 0.12);
+}
+
+.profile-card,
+.appearance-hero {
+  display: grid;
+  gap: 16px;
+}
+
+.profile-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.settings-wide {
+  grid-column: 1 / -1;
+}
+
+.profile-meta-row,
+.profile-actions-row,
+.settings-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.profile-meta-text {
+  margin-top: 4px;
+  color: var(--text-secondary);
+}
+
+.profile-summary-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.profile-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profile-summary-item {
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-base);
+  display: grid;
+  gap: 6px;
+}
+
+.profile-summary-item span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.profile-summary-item strong {
+  color: var(--text-primary);
 }
 
 /* ── Placeholder card ──────────────────────────────────── */
