@@ -1,161 +1,206 @@
-# Windows Settings App (React + Electron)
+# my-desktop-app
 
-A Windows desktop application for managing user preferences and authorizations. Built with React, Vite, and Electron. Settings are persisted locally using `electron-store`.
+A desktop application built with Electron and React (Vite).
 
-## Features
-
-- ✅ Theme selector (Light/Dark)
-- ✅ Toggle controls (notifications, auto-launch, data sharing)
-- ✅ API key / authorization field (masked input)
-- ✅ Settings persist across app restarts
-- ✅ Ready to connect to a backend API
+---
 
 ## Prerequisites
 
-- **Node.js** 18+ (tested with v22.14.0)
-- **npm** 10+
-- **Windows 10 or 11** (the app is built for Windows)
+- [Node.js](https://nodejs.org/) v18 or later
+- npm v9 or later
+
+---
 
 ## Setup
 
-1. **Clone the repository**
-   ```bash
-   git clone <your-repo-url>
-   cd <project-folder>
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Install Electron builder (for packaging) – optional**
-   ```bash
-   npm install electron-builder --save-dev
-   ```
-
-## Development
-
-Run the app in development mode with hot reload:
-
 ```bash
-# Terminal 1: Start React dev server
-npm run dev
+# 1. Clone the repository
+git clone <repo-url>
+cd my-desktop-app
 
-# Terminal 2: Launch Electron window
-npx electron .
+# 2. Install dependencies
+npm install
 ```
 
-The Electron window will open with the settings interface. Any changes you make to `src/` will auto-reload.
+---
 
-> **Important:** The file `electron/main.js` sets `process.env.NODE_ENV = 'development'` to load the dev server instead of the production build.
+## Running in Development
+
+Two processes need to run together: the Vite dev server (renderer) and Electron (main process).
+
+**Option A — two terminals:**
+
+```bash
+# Terminal 1: start the Vite dev server
+npm run dev
+
+# Terminal 2: once Vite is ready, launch Electron
+npm run electron
+```
+
+**Option B — single command** (if configured with `concurrently`):
+
+```bash
+npm run start
+```
+
+The app will open in an Electron window. Hot module reload (HMR) is active — changes to `src/` reflect instantly without restarting Electron. Changes to `electron/main.js` require restarting the Electron process.
+
+---
 
 ## Project Structure
 
 ```
+my-desktop-app/
 ├── electron/
-│   ├── main.js          # Electron main process (creates window, handles IPC)
-│   └── preload.js       # Exposes safe API to React (settings get/save)
+│   ├── main.js          # Electron main process — window creation, IPC handlers
+│   └── preload.js       # Exposes safe APIs to the renderer via contextBridge
 ├── src/
-│   ├── App.jsx          # Settings UI (React)
+│   ├── config/
+│   │   └── navConfig.js # Single source of truth for navigation and routing
+│   ├── components/
+│   │   ├── NavBar.jsx
+│   │   ├── Sidebar.jsx
+│   │   └── MainContent.jsx
+│   ├── pages/           # One folder per nav section, one file per subtopic
+│   │   ├── stats/
+│   │   ├── actions/
+│   │   ├── settings/
+│   │   └── help/
+│   ├── App.jsx          # Shell: layout + navigation state
+│   ├── App.css          # Global styles and design tokens
 │   └── main.jsx         # React entry point
+├── public/              # Static assets
 ├── index.html
-├── package.json
-├── vite.config.js       # Vite config with `base: './'` for relative paths
-└── README.md
+├── vite.config.js
+└── package.json
 ```
 
-## Building a Windows Installer (.exe)
+---
 
-We haven't configured electron-builder yet. To generate a standalone `.exe`:
+## Navigation Architecture
 
-1. **Install electron-builder**
-   ```bash
-   npm install electron-builder --save-dev
-   ```
+Navigation has three layers: **NavBar → Sidebar → MainContent**.
 
-2. **Add build scripts to `package.json`**
-   ```json
-   "scripts": {
-     "build": "vite build",
-     "dist": "npm run build && electron-builder"
-   }
-   ```
+The active `(nav, subtopic)` pair determines what renders in the main area.
+All routing is managed by `src/config/navConfig.js` — there is no routing library.
 
-3. **Add build configuration (inside `package.json`)**
-   ```json
-   "build": {
-     "appId": "com.yourcompany.app",
-     "productName": "SettingsApp",
-     "directories": { "output": "release" },
-     "win": {
-       "target": "nsis",
-       "icon": "public/icon.ico"
-     }
-   }
-   ```
+### Adding a new page
 
-4. **Run the build**
-   ```bash
-   npm run dist
-   ```
+**1. Create the component**
 
-The installer will be in the `release/` folder.
-
-## Settings Storage
-
-Settings are saved to a JSON file using `electron-store`. Default location:
-
-```
-C:\Users\<YourUser>\AppData\Roaming\SettingsApp\app-settings.json
-```
-
-Defaults:
-
-```json
-{
-  "theme": "light",
-  "notifications": true,
-  "autoLaunch": false,
-  "apiKey": "",
-  "dataSharing": false
+```jsx
+// src/pages/stats/StatsOverview.jsx
+function StatsOverview() {
+  return <div>Stats Overview content</div>;
 }
+
+export default StatsOverview;
 ```
 
-## Connecting to a Backend API
+**2. Register it in navConfig.js**
 
-In `src/App.jsx`, the `handleSave` function currently saves locally. To also send settings to your backend:
+```js
+import StatsOverview from "../pages/stats/StatsOverview";
 
-```javascript
-const handleSave = async () => {
-  // Save locally
-  await window.electronAPI.saveSettings(settings)
-
-  // Send to backend
-  const response = await fetch('https://your-backend/api/settings', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(settings)
-  })
-
-  if (response.ok) alert('Settings saved locally and synced!')
-}
+export const NAV_CONFIG = [
+  {
+    id: "stats",
+    label: "Stats",
+    icon: "◈",
+    subtopics: [
+      { id: "overview", label: "Overview", component: StatsOverview }, // ← add component
+      ...
+    ],
+  },
+  ...
+];
 ```
 
-## Troubleshooting
+That's it. `MainContent.jsx` picks it up automatically.
 
-**Electron shows the old Vite template (spinning logo)**
-Make sure `electron/main.js` has `process.env.NODE_ENV = 'development'` at the very top and that the React dev server is running (`npm run dev`).
+### Adding a new nav section
 
-**Settings not persisting after restart**
-Check that `electron-store` is installed and that the preload script is correctly referenced in `main.js`.
+Add a new entry to the `NAV_CONFIG` array with a unique `id`, a `label`, an `icon`, and at least one subtopic. The NavBar and Sidebar update automatically.
 
-**White screen or file not found errors**
-Run `npm run build` to generate the `dist` folder, then try `npx electron .` again. Also ensure `vite.config.js` contains `base: './'`.
+---
 
-## Tech Stack
+## Electron ↔ React Communication (IPC)
 
-- **React** – UI
-- **Vite** – Build tool and dev server
-- **Electron** – Desktop runtime
-- **electron-store** – Persistent local storage
+The renderer (`src/`) runs in a sandboxed browser context with no Node.js access.
+To call native APIs (file system, OS info, etc.), use IPC.
+
+**1. Add a handler in `electron/main.js`:**
+
+```js
+const { ipcMain } = require('electron');
+
+ipcMain.handle('read-file', async (event, filePath) => {
+  const fs = require('fs');
+  return fs.readFileSync(filePath, 'utf8');
+});
+```
+
+**2. Expose it via `electron/preload.js`:**
+
+```js
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('electronAPI', {
+  readFile: (path) => ipcRenderer.invoke('read-file', path),
+});
+```
+
+**3. Call it from any React component:**
+
+```js
+const content = await window.electronAPI.readFile('/path/to/file');
+```
+
+---
+
+## Styling
+
+Global design tokens are defined as CSS variables in `src/App.css`.
+Always use these variables — never hardcode colors, fonts, or spacing.
+
+| Token | Use |
+|---|---|
+| `--bg-base` | Page background |
+| `--bg-surface` | NavBar, Sidebar |
+| `--bg-raised` | Cards, active states |
+| `--accent` | Highlights, active indicators |
+| `--text-primary` | Main content text |
+| `--text-secondary` | Subtitles, labels |
+| `--text-muted` | Disabled, decorative |
+| `--font-sans` | UI text (`IBM Plex Sans`) |
+| `--font-mono` | Labels, codes, tags (`IBM Plex Mono`) |
+
+Component-specific styles go in a `.css` file next to the component file.
+
+---
+
+## Building for Production
+
+```bash
+# Build the renderer
+npm run build
+
+# Package the Electron app
+npm run dist
+```
+
+Output is written to `dist/`. The packaged installer for your platform will appear there.
+
+---
+
+## Scripts Reference
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start Vite dev server for the renderer |
+| `npm run electron` | Launch Electron (point at running Vite server) |
+| `npm run start` | Start both together (requires `concurrently`) |
+| `npm run build` | Build renderer to `dist/` |
+| `npm run dist` | Package the full Electron app |
+| `npm run lint` | Run ESLint |
