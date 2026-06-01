@@ -21,6 +21,7 @@ import {
 } from "./api/session";
 
 import "./App.css";
+  import { createDefaultProfile } from "./lib/profileStore";
 
 function App() {
   const firstNav = NAV_CONFIG[0];
@@ -32,7 +33,6 @@ function App() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   const [showLauncher, setShowLauncher] = useState(false);
-  import {profile as createDefaultProfile} from "./utils/profileUtils";
   // ONLY SOURCE OF TRUTH FOR SESSION
   const [sessionState, setSessionState] = useState({
     active: false,
