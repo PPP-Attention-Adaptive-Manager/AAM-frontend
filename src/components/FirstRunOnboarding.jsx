@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import {saveProfile} from '../api/profile'
 import './FirstRunOnboarding.css'
 
 const ONBOARDING_QUESTIONS = [
@@ -239,20 +240,29 @@ export function FirstRunOnboarding({ initialProfile, onComplete }) {
     }
   }, [sceneLine, stepIndex, stage])
 
-  const finishOnboarding = (nextAnswers) => {
-    onComplete({
-      ...initialProfile,
-      firstTime: false,
-      name: nextAnswers.name,
-      onboarding: {
-        profession: nextAnswers.profession,
-        work_activities: nextAnswers.work_activities || [],
-        distractions: nextAnswers.distractions || [],
-        focus_style: nextAnswers.focus_style,
-        override_protocol: nextAnswers.override_protocol,
-      },
-    })
+  const finishOnboarding = async (nextAnswers) => {
+  const profile = {
+    firstTime: false,
+    name: nextAnswers.name,
+    onboarding: {
+      profession: nextAnswers.profession,
+      work_activities: nextAnswers.work_activities || [],
+      distractions: nextAnswers.distractions || [],
+      focus_style: nextAnswers.focus_style,
+      override_protocol: nextAnswers.override_protocol,
+    },
   }
+
+  try {
+    await saveProfile(profile)
+  } catch (err) {
+    console.error("Failed to save profile:", err)
+  }
+
+  onComplete({
+    ...profile
+  })
+}
 
   const advanceStep = (field, value) => {
     const nextValue = Array.isArray(value) ? [...value] : value.trim ? value.trim() : value

@@ -1,15 +1,11 @@
 import { useMemo, useState } from "react";
 import "./SessionLauncher.css";
+import { startSession } from "../api/session";
 
 const DEFAULT_PERMISSIONS = {
-  csv: true,
-  influx: false,
-  dualTask: true,
   keyboard: true,
   mouse: true,
-  notifications: false,
-  systemMetrics: true,
-  overlay: true,
+  notifications: true,
 };
 
 export default function SessionLauncher({ onStart, onCancel }) {
@@ -24,7 +20,10 @@ export default function SessionLauncher({ onStart, onCancel }) {
   const isCustom = mode === "custom";
 
   const toggle = (key) => {
-    setPermissions((p) => ({ ...p, [key]: !p[key] }));
+    setPermissions((p) => ({
+      ...p,
+      [key]: !p[key],
+    }));
   };
 
   const canContinue = useMemo(() => {
@@ -35,27 +34,36 @@ export default function SessionLauncher({ onStart, onCancel }) {
     return true;
   }, [step, goal, duration, isCustom]);
 
-  const handleStart = () => {
-    onStart?.({
-      goal,
-      mode,
-      session_duration_minutes: Number(duration),
+  const handleStart = async () => {
+   const payload = {
+  mode: "experimental",
+  duration_minutes: Number(duration),
+  goal,
 
-      csv_enabled: isCustom ? permissions.csv : true,
-      influx_enabled: isCustom ? permissions.influx : false,
-      dual_task_enabled: isCustom ? permissions.dualTask : true,
-      keyboard_tracking_enabled: isCustom ? permissions.keyboard : true,
-      mouse_tracking_enabled: isCustom ? permissions.mouse : true,
-      notification_tracking_enabled: isCustom ? permissions.notifications : false,
-      system_metrics_enabled: isCustom ? permissions.systemMetrics : true,
-      ui_overlay_enabled: isCustom ? permissions.overlay : true,
-    });
+  keyboard_tracking_enabled: permissions.keyboard,
+  mouse_tracking_enabled: permissions.mouse,
+  notification_tracking_enabled: permissions.notifications,
+  app_tracking_enabled: permissions.applications,
+};
+
+    try {
+      console.log("[SessionLauncher] Starting session...");
+      console.log("[SessionLauncher] Payload:", payload);
+
+      const result = await startSession(payload);
+
+      console.log("[SessionLauncher] Session started:", result);
+
+      onStart?.(result);
+    } catch (err) {
+      console.error("[SessionLauncher] Failed to start session:", err);
+      alert("Failed to start session");
+    }
   };
 
   return (
     <div className="sl-backdrop">
       <div className="sl-dialog">
-
         {/* HEADER */}
         <div className="sl-header">
           <h1 className="sl-title">Session Setup</h1>
@@ -66,11 +74,13 @@ export default function SessionLauncher({ onStart, onCancel }) {
 
         {/* BODY */}
         <div className="sl-body">
-
           {/* STEP 1 - GOAL */}
           {step === 0 && (
             <div className="sl-field">
-              <label className="sl-label">What is your goal?</label>
+              <label className="sl-label">
+                What is your goal?
+              </label>
+
               <input
                 className="sl-input"
                 value={goal}
@@ -80,45 +90,41 @@ export default function SessionLauncher({ onStart, onCancel }) {
             </div>
           )}
 
-          {/* STEP 2 - MODE */}
+        
+          {/* STEP 2 - PERMISSIONS */}
           {step === 1 && (
             <div className="sl-field">
-              <label className="sl-label">Session mode</label>
-
-              <div className="sl-options">
-                <button
-                  className={`sl-option ${mode === "default" ? "active" : ""}`}
-                  onClick={() => setMode("default")}
-                >
-                  Default mapping
-                </button>
-
-                <button
-                  className={`sl-option ${mode === "custom" ? "active" : ""}`}
-                  onClick={() => setMode("custom")}
-                >
-                  Custom permissions
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 3 - PERMISSIONS (ONLY CUSTOM) */}
-          {step === 2 && isCustom && (
-            <div className="sl-field">
-              <label className="sl-label">Permissions</label>
+              <label className="sl-label">
+                Permissions
+              </label>
 
               <div className="sl-grid">
-                {Object.entries(permissions).map(([k, v]) => (
-                  <label key={k} className="sl-toggle">
-                    <input
-                      type="checkbox"
-                      checked={v}
-                      onChange={() => toggle(k)}
-                    />
-                    <span>{k}</span>
-                  </label>
-                ))}
+                <label className="sl-toggle">
+                  <input
+                    type="checkbox"
+                    checked={permissions.keyboard}
+                    onChange={() => toggle("keyboard")}
+                  />
+                  <span>Keyboard Tracking</span>
+                </label>
+
+                <label className="sl-toggle">
+                  <input
+                    type="checkbox"
+                    checked={permissions.mouse}
+                    onChange={() => toggle("mouse")}
+                  />
+                  <span>Mouse Tracking</span>
+                </label>
+
+                <label className="sl-toggle">
+                  <input
+                    type="checkbox"
+                    checked={permissions.notifications}
+                    onChange={() => toggle("notifications")}
+                  />
+                  <span>Notification Tracking</span>
+                </label>
               </div>
             </div>
           )}
@@ -143,12 +149,18 @@ export default function SessionLauncher({ onStart, onCancel }) {
 
         {/* FOOTER */}
         <div className="sl-footer">
-          <button className="sl-btn" onClick={onCancel}>
+          <button
+            className="sl-btn"
+            onClick={onCancel}
+          >
             Cancel
           </button>
 
           {step > 0 && (
-            <button className="sl-btn" onClick={() => setStep(step - 1)}>
+            <button
+              className="sl-btn"
+              onClick={() => setStep(step - 1)}
+            >
               Back
             </button>
           )}
@@ -162,7 +174,10 @@ export default function SessionLauncher({ onStart, onCancel }) {
               Next
             </button>
           ) : (
-            <button className="sl-btn primary" onClick={handleStart}>
+            <button
+              className="sl-btn primary"
+              onClick={handleStart}
+            >
               Start Session
             </button>
           )}

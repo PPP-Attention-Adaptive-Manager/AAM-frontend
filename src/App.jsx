@@ -5,35 +5,122 @@ import MainContent from "./components/MainContent";
 import { FirstRunOnboarding } from "./components/FirstRunOnboarding";
 import SessionLauncher from "./components/SessionLauncher";
 import { NAV_CONFIG } from "./config/navConfig";
-import { createDefaultProfile, loadProfile, saveProfile } from "./lib/profileStore";
+
+import {
+  saveProfile as saveProfileAPI,
+} from "./api/profile";
+import {
+  getProfileExists,
+  getProfile,
+} from "./api/profile";
+
+import {
+  startSession,
+  stopSession,
+  getSessionStatus,
+} from "./api/session";
+
 import "./App.css";
 
 function App() {
   const firstNav = NAV_CONFIG[0];
+
   const [activeNav, setActiveNav] = useState(firstNav.id);
   const [activeSub, setActiveSub] = useState(firstNav.subtopics[0].id);
+
   const [profile, setProfile] = useState(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+
   const [showLauncher, setShowLauncher] = useState(false);
+  import {profile as createDefaultProfile} from "./utils/profileUtils";
+  // ONLY SOURCE OF TRUTH FOR SESSION
+  const [sessionState, setSessionState] = useState({
+    active: false,
+    config: null,
+  });
 
+  // ----------------------------------------
+  // PROFILE INIT
+  // ----------------------------------------
   useEffect(() => {
-    let isMounted = true;
+    let alive = true;
 
-    async function initializeProfile() {
-      const loadedProfile = await loadProfile();
-      if (isMounted) {
-        setProfile(loadedProfile);
+    async function init() {
+      try {
+        const res = await getProfileExists();
+
+        const exists =
+          res?.exists === true ||
+          res === true ||
+          res === "true";
+
+        if (!alive) return;
+
+        if (!exists) {
+          const defaultProfile = createDefaultProfile();
+          await saveProfileAPI(defaultProfile);
+
+          setProfile(defaultProfile);
+          setIsLoadingProfile(false);
+          return;
+        }
+
+        const loaded = await getProfile();
+
+        if (!alive) return;
+
+        setProfile(loaded || createDefaultProfile());
         setIsLoadingProfile(false);
+
+      } catch (err) {
+        console.error(err);
+
+        if (alive) {
+          setProfile(createDefaultProfile());
+          setIsLoadingProfile(false);
+        }
       }
     }
 
-    initializeProfile();
+    init();
 
     return () => {
-      isMounted = false;
+      alive = false;
     };
   }, []);
 
+  // ----------------------------------------
+  // SESSION SYNC (IMPORTANT PART)
+  // ----------------------------------------
+  useEffect(() => {
+    let alive = true;
+
+    const sync = async () => {
+      try {
+        const status = await getSessionStatus();
+        if (!alive) return;
+
+        setSessionState({
+          active: status?.active ?? false,
+          config: status?.config ?? null,
+        });
+      } catch (err) {
+        console.error("[session sync error]", err);
+      }
+    };
+
+    sync();
+    const interval = setInterval(sync, 2000);
+
+    return () => {
+      alive = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  // ----------------------------------------
+  // NAV
+  // ----------------------------------------
   const handleNavChange = (navId) => {
     const nav = NAV_CONFIG.find((n) => n.id === navId);
     setActiveNav(navId);
@@ -44,70 +131,133 @@ function App() {
     setActiveSub(subId);
   };
 
-  const handleSessionStart = (config) => {
+  // ----------------------------------------
+  // SESSION START
+  // ----------------------------------------
+  const handleSessionStart = async (config) => {
     setShowLauncher(false);
-    window.electronAPI?.startSession(config);
+
+    try {
+      const res = await startSession(config);
+
+      if (res?.status === "already_running") {
+        return;
+      }
+
+      // don't trust blindly — backend sync will confirm
+      const status = await getSessionStatus();
+
+      setSessionState({
+        active: status.active,
+        config: status.config,
+      });
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  useEffect(() => {
+  const theme = profile?.appearance?.theme || "amber";
+
+  document.documentElement.setAttribute("data-theme", theme);
+}, [profile?.appearance?.theme]);
+
+  // ----------------------------------------
+  // SESSION STOP
+  // ----------------------------------------
+  const handleSessionStop = async () => {
+    try {
+      await stopSession();
+
+      const status = await getSessionStatus();
+
+      setSessionState({
+        active: status.active,
+        config: status.config,
+      });
+
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const currentNav = NAV_CONFIG.find((n) => n.id === activeNav);
-  const currentSub = currentNav.subtopics.find((s) => s.id === activeSub);
-  const appearance = profile?.appearance || createDefaultProfile().appearance;
-
-  const shellStyle = {
-    '--accent': appearance.theme === 'ice' ? '#7dd3fc' : appearance.theme === 'emerald' ? '#34d399' : appearance.theme === 'crimson' ? '#f87171' : '#f0a500',
-    '--accent-dim': appearance.theme === 'ice' ? 'rgba(125, 211, 252, 0.12)' : appearance.theme === 'emerald' ? 'rgba(52, 211, 153, 0.12)' : appearance.theme === 'crimson' ? 'rgba(248, 113, 113, 0.12)' : 'rgba(240, 165, 0, 0.12)',
-    '--accent-glow': appearance.theme === 'ice' ? 'rgba(125, 211, 252, 0.24)' : appearance.theme === 'emerald' ? 'rgba(52, 211, 153, 0.24)' : appearance.theme === 'crimson' ? 'rgba(248, 113, 113, 0.24)' : 'rgba(240, 165, 0, 0.25)',
-    '--border-active': appearance.theme === 'ice' ? '#7dd3fc' : appearance.theme === 'emerald' ? '#34d399' : appearance.theme === 'crimson' ? '#f87171' : '#f0a500',
-    '--bg-base': appearance.theme === 'ice' ? '#0f1418' : appearance.theme === 'emerald' ? '#101613' : appearance.theme === 'crimson' ? '#161014' : '#111214',
-    '--bg-surface': appearance.theme === 'ice' ? '#141c22' : appearance.theme === 'emerald' ? '#151b18' : appearance.theme === 'crimson' ? '#201518' : '#18191d',
-    '--bg-raised': appearance.theme === 'ice' ? '#18222a' : appearance.theme === 'emerald' ? '#1b211e' : appearance.theme === 'crimson' ? '#26181d' : '#1f2025',
-    '--bg-hover': appearance.theme === 'ice' ? '#1d2932' : appearance.theme === 'emerald' ? '#202723' : appearance.theme === 'crimson' ? '#2b1d21' : '#25262c',
-    '--border': appearance.theme === 'ice' ? '#23313c' : appearance.theme === 'emerald' ? '#243029' : appearance.theme === 'crimson' ? '#362329' : '#2a2b31',
-    '--text-secondary': appearance.density === 'compact' ? '#9aa0aa' : '#8a8d97',
-  };
-
+  // ----------------------------------------
+  // ONBOARDING
+  // ----------------------------------------
   const handleOnboardingComplete = async (nextProfile) => {
-    const savedProfile = await saveProfile(nextProfile);
-    setProfile(savedProfile);
+    try {
+      const payload = {
+        ...nextProfile,
+        firstTime: false,
+      };
+
+      await saveProfileAPI(payload);
+      setProfile(payload);
+
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleLogout = async () => {
-    const resetProfile = await saveProfile(createDefaultProfile());
-    setProfile(resetProfile);
+    const reset = createDefaultProfile();
+    await saveProfileAPI(reset);
+    setProfile(reset);
   };
 
+  // ----------------------------------------
+  // LOADING
+  // ----------------------------------------
   if (isLoadingProfile) {
     return (
-      <div className="app-shell app-loading" style={shellStyle}>
-        <main className="loading-card">
-          <span className="loading-kicker">Loading profile</span>
-          <h1>Preparing your workspace</h1>
-          <p>
-            I am checking whether this is your first time so I can either greet you or open the app.
-          </p>
-        </main>
+      <div className="app-shell app-loading">
+        <h1>Loading...</h1>
       </div>
     );
   }
 
-  if (profile?.firstTime !== false) {
+  // ----------------------------------------
+  // ONBOARDING
+  // ----------------------------------------
+  const shouldShowOnboarding =
+    !profile || profile.firstTime !== false;
+
+  if (shouldShowOnboarding) {
     return (
-      <div className="app-shell app-locked" style={shellStyle}>
-        <FirstRunOnboarding initialProfile={profile || {}} onComplete={handleOnboardingComplete} />
+      <div className="app-shell app-locked">
+        <FirstRunOnboarding
+          initialProfile={profile || createDefaultProfile()}
+          onComplete={handleOnboardingComplete}
+        />
       </div>
     );
   }
+
+  // ----------------------------------------
+  // MAIN APP
+  // ----------------------------------------
+  const currentNav = NAV_CONFIG.find((n) => n.id === activeNav);
+  const currentSub = currentNav.subtopics.find((s) => s.id === activeSub);
 
   return (
-    <div className="app-shell" style={shellStyle}>
+    <div className="app-shell">
+
       <NavBar
         items={NAV_CONFIG}
         activeNav={activeNav}
         onNavChange={handleNavChange}
-        userName={profile?.name}
+        userName={profile?.name || "User"}
         onLogout={handleLogout}
+
         onStartSession={() => setShowLauncher(true)}
+        onStopSession={handleSessionStop}
+
+        sessionActive={sessionState.active}
+        sessionStatus={
+          sessionState.active ? "RUNNING" : "IDLE"
+        }
       />
+
       <div className="app-body">
         <Sidebar
           subtopics={currentNav.subtopics}
@@ -115,6 +265,7 @@ function App() {
           onSubChange={handleSubChange}
           navLabel={currentNav.label}
         />
+
         <MainContent
           nav={currentNav}
           sub={currentSub}
@@ -122,6 +273,7 @@ function App() {
           onProfileChange={handleOnboardingComplete}
         />
       </div>
+
       {showLauncher && (
         <SessionLauncher
           onStart={handleSessionStart}
