@@ -1,4 +1,4 @@
-function NavBar({ items, activeNav, onNavChange, userName, onLogout }) {
+ function NavBar({ items, activeNav, onNavChange, userName, onLogout, onStartSession }) {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
@@ -18,6 +18,9 @@ function NavBar({ items, activeNav, onNavChange, userName, onLogout }) {
           </li>
         ))}
       </ul>
+  <button className="nav-start-session-btn" onClick={onStartSession}>
+    Start Session
+  </button>
       <div className="navbar-end">
         {userName ? <span className="status-user">{userName}</span> : null}
         <span className="status-dot" />

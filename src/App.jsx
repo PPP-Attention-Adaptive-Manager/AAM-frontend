@@ -3,6 +3,7 @@ import NavBar from "./components/NavBar";
 import Sidebar from "./components/Sidebar";
 import MainContent from "./components/MainContent";
 import { FirstRunOnboarding } from "./components/FirstRunOnboarding";
+import SessionLauncher from "./components/SessionLauncher";
 import { NAV_CONFIG } from "./config/navConfig";
 import { createDefaultProfile, loadProfile, saveProfile } from "./lib/profileStore";
 import "./App.css";
@@ -13,13 +14,13 @@ function App() {
   const [activeSub, setActiveSub] = useState(firstNav.subtopics[0].id);
   const [profile, setProfile] = useState(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [showLauncher, setShowLauncher] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
 
     async function initializeProfile() {
       const loadedProfile = await loadProfile();
-
       if (isMounted) {
         setProfile(loadedProfile);
         setIsLoadingProfile(false);
@@ -41,6 +42,11 @@ function App() {
 
   const handleSubChange = (subId) => {
     setActiveSub(subId);
+  };
+
+  const handleSessionStart = (config) => {
+    setShowLauncher(false);
+    window.electronAPI?.startSession(config);
   };
 
   const currentNav = NAV_CONFIG.find((n) => n.id === activeNav);
@@ -100,6 +106,7 @@ function App() {
         onNavChange={handleNavChange}
         userName={profile?.name}
         onLogout={handleLogout}
+        onStartSession={() => setShowLauncher(true)}
       />
       <div className="app-body">
         <Sidebar
@@ -108,8 +115,19 @@ function App() {
           onSubChange={handleSubChange}
           navLabel={currentNav.label}
         />
-        <MainContent nav={currentNav} sub={currentSub} profile={profile} onProfileChange={handleOnboardingComplete} />
+        <MainContent
+          nav={currentNav}
+          sub={currentSub}
+          profile={profile}
+          onProfileChange={handleOnboardingComplete}
+        />
       </div>
+      {showLauncher && (
+        <SessionLauncher
+          onStart={handleSessionStart}
+          onCancel={() => setShowLauncher(false)}
+        />
+      )}
     </div>
   );
 }
