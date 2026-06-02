@@ -15,7 +15,6 @@ import {
 } from "./api/profile";
 
 import {
-  startSession,
   stopSession,
   getSessionStatus,
 } from "./api/session";
@@ -134,13 +133,11 @@ function App() {
   // ----------------------------------------
   // SESSION START
   // ----------------------------------------
-  const handleSessionStart = async (config) => {
+  const handleSessionStart = async (result) => {
     setShowLauncher(false);
 
     try {
-      const res = await startSession(config);
-
-      if (res?.status === "already_running") {
+      if (result?.status === "already_running") {
         return;
       }
 

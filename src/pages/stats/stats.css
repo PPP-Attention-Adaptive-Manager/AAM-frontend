@@ -501,3 +501,42 @@
 .stats-panel:hover {
   border-color: rgba(255, 255, 255, 0.1);
 }
+
+.live-fusion-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.live-status-note.connected {
+  color: var(--green);
+  border-color: rgba(61, 220, 132, 0.24);
+  background: rgba(61, 220, 132, 0.08);
+}
+
+.live-status-message {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.live-fusion-meta .stats-metric-value {
+  font-size: 18px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.live-fusion-grid {
+  align-items: start;
+}
+
+.live-fusion-block {
+  min-width: 0;
+}
+
+.live-score-fill {
+  background: linear-gradient(90deg, rgba(92, 115, 216, 0.34), #5c73d8);
+}
+
+.live-state-fill {
+  background: linear-gradient(90deg, rgba(47, 158, 131, 0.34), #2f9e83);
+}

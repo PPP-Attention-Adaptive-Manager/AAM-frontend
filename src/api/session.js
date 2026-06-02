@@ -43,6 +43,20 @@ export async function getSessionStats() {
   return res.json();
 }
 
+export async function getLatestLivePrediction() {
+  const res = await fetch(`${API_URL}/session/live/predictions/latest`);
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.detail || "Failed to load live prediction");
+  }
+
+  return res.json();
+}
+
+export function createLivePredictionsSource() {
+  return new EventSource(`${API_URL}/session/live/predictions/stream`);
+}
+
 export async function stopSession() {
   const res = await fetch(`${API_URL}/session/stop`, {
     method: "POST",

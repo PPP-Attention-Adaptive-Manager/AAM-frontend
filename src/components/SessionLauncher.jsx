@@ -13,12 +13,11 @@ export default function SessionLauncher({ onStart, onCancel }) {
   const [step, setStep] = useState(0);
 
   const [goal, setGoal] = useState("");
-  const [mode, setMode] = useState("default"); // default | custom
   const [duration, setDuration] = useState(60);
 
   const [permissions, setPermissions] = useState(DEFAULT_PERMISSIONS);
 
-  const isCustom = mode === "custom";
+  const isCustom = false;
 
   const toggle = (key) => {
     setPermissions((p) => ({
