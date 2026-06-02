@@ -1,23 +1,9 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { InfoPopup } from '../../components/InfoPopup'
+import { getQuickActions, getActionStats } from '../../api/actions'
 import '../stats/stats.css'
 import './actions.css'
 import '../../components/InfoPopup.css'
-
-const QUICK_ACTIONS = [
-  { label: 'Start Focus Session', status: 'Ready', detail: 'Opens a distraction shield and begins tracking.' },
-  { label: 'Silence Notifications', status: 'Suggested', detail: 'Hides interruptions for the next 45 minutes.' },
-  { label: 'Close Low Priority Tabs', status: 'Queued', detail: 'Keeps only the pages you actively need.' },
-  { label: 'Log Quick Thought', status: 'Available', detail: 'Captures a note without leaving the workspace.' },
-]
-
-const ACTION_METRICS = [
-  { label: 'Ready actions', value: '12' },
-  { label: 'Suggested now', value: '4' },
-  { label: 'Blocked distractions', value: '19' },
-]
-
-const ACTION_TRENDS = [74, 58, 66, 72, 81, 77, 85]
 
 function buildBriefing(profile) {
   const onboarding = profile?.onboarding || {}
@@ -44,7 +30,28 @@ function buildBriefing(profile) {
 }
 
 export function QuickActions({ profile }) {
+  const [quickActions, setQuickActions] = useState([])
+  const [actionStats, setActionStats] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const facts = useMemo(() => buildBriefing(profile), [profile])
+
+  useEffect(() => {
+    const loadActions = async () => {
+      try {
+        setLoading(true)
+        const [quick, stats] = await Promise.all([getQuickActions(), getActionStats()])
+        setQuickActions(quick)
+        setActionStats(stats)
+      } catch (err) {
+        console.error(err)
+        setError(err?.message || 'Unable to load action data')
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadActions()
+  }, [])
 
   return (
     <section className="actions-page">
@@ -58,7 +65,7 @@ export function QuickActions({ profile }) {
         <div className="stats-briefing-header">
           <div>
             <p className="stats-kicker">Astra // action briefing</p>
-            <h2>Default mock actions ready</h2>
+            <h2>Action guidance from backend service</h2>
           </div>
           <span className="stats-pill">Quick actions</span>
         </div>
@@ -72,13 +79,29 @@ export function QuickActions({ profile }) {
         </div>
       </div>
 
+      {error && (
+        <div className="stats-panel stats-panel-error">
+          <p>{error}</p>
+        </div>
+      )}
+
       <div className="actions-grid metrics-grid">
-        {ACTION_METRICS.map((metric) => (
-          <article key={metric.label} className="stats-metric-card">
-            <span className="stats-metric-label">{metric.label}</span>
-            <strong className="stats-metric-value">{metric.value}</strong>
+        {actionStats ? (
+          [
+            { label: 'Ready actions', value: actionStats.ready_actions },
+            { label: 'Suggested now', value: actionStats.suggested_now },
+            { label: 'Blocked distractions', value: actionStats.blocked_distractions },
+          ].map((metric) => (
+            <article key={metric.label} className="stats-metric-card">
+              <span className="stats-metric-label">{metric.label}</span>
+              <strong className="stats-metric-value">{metric.value}</strong>
+            </article>
+          ))
+        ) : (
+          <article className="stats-metric-card">
+            <span className="stats-metric-label">Loading metrics…</span>
           </article>
-        ))}
+        )}
       </div>
 
       <div className="stats-dual-grid">
@@ -86,21 +109,25 @@ export function QuickActions({ profile }) {
           <div className="stats-panel-header">
             <div>
               <p className="stats-kicker">Action queue</p>
-              <h3>Default shortcut set</h3>
+              <h3>Backend-driven action set</h3>
             </div>
-            <span className="stats-panel-note">Live mock data</span>
+            <span className="stats-panel-note">Live backend data</span>
           </div>
 
           <div className="actions-list">
-            {QUICK_ACTIONS.map((action) => (
-              <article key={action.label} className="action-card">
-                <div className="action-card-topline">
-                  <strong>{action.label}</strong>
-                  <span>{action.status}</span>
-                </div>
-                <p>{action.detail}</p>
-              </article>
-            ))}
+            {loading ? (
+              <p>Loading actions…</p>
+            ) : (
+              quickActions.map((action) => (
+                <article key={action.label} className="action-card">
+                  <div className="action-card-topline">
+                    <strong>{action.label}</strong>
+                    <span>{action.status}</span>
+                  </div>
+                  <p>{action.detail}</p>
+                </article>
+              ))
+            )}
           </div>
         </div>
 
@@ -113,8 +140,12 @@ export function QuickActions({ profile }) {
           </div>
 
           <div className="sparkline-chart actions-sparkline">
-            {ACTION_TRENDS.map((value, index) => (
-              <span key={`${value}-${index}`} className="sparkline-point" style={{ height: `${value}%` }} />
+            {actionStats?.trend?.map((value, index) => (
+              <span
+                key={`${value}-${index}`}
+                className="sparkline-point"
+                style={{ height: `${value}%` }}
+              />
             ))}
           </div>
         </div>
