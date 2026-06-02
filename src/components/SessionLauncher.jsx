@@ -6,6 +6,7 @@ const DEFAULT_PERMISSIONS = {
   keyboard: true,
   mouse: true,
   notifications: true,
+  applications: true,
 };
 
 export default function SessionLauncher({ onStart, onCancel }) {
@@ -36,16 +37,15 @@ export default function SessionLauncher({ onStart, onCancel }) {
 
   const handleStart = async () => {
    const payload = {
-  mode: "experimental",
-  duration_minutes: Number(duration),
-  goal,
+      mode: "experimental",
+      duration_minutes: Number(duration),
+      goal,
 
-  keyboard_tracking_enabled: permissions.keyboard,
-  mouse_tracking_enabled: permissions.mouse,
-  notification_tracking_enabled: permissions.notifications,
-  app_tracking_enabled: permissions.applications,
-};
-
+      keyboard_tracking_enabled: permissions.keyboard,
+      mouse_tracking_enabled: permissions.mouse,
+      notification_tracking_enabled: permissions.notifications,
+      app_tracking_enabled: permissions.applications,
+    };
     try {
       console.log("[SessionLauncher] Starting session...");
       console.log("[SessionLauncher] Payload:", payload);
@@ -124,6 +124,15 @@ export default function SessionLauncher({ onStart, onCancel }) {
                     onChange={() => toggle("notifications")}
                   />
                   <span>Notification Tracking</span>
+                </label>
+
+                <label className="sl-toggle">
+                  <input
+                    type="checkbox"
+                    checked={permissions.applications}
+                    onChange={() => toggle("applications")}
+                  />
+                  <span>Application Tracking</span>
                 </label>
               </div>
             </div>

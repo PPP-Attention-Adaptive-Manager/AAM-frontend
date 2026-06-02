@@ -2,6 +2,7 @@ import { GeneralSettings } from "../pages/settings/General";
 import { AppearanceSettings } from "../pages/settings/Appearance";
 import { AdvancedSettings } from "../pages/settings/Advanced";
 import { StatsOverview } from "../pages/stats/StatsOverview";
+import { LatestSession } from "../pages/stats/LatestSession";
 import { StatsPerformance } from "../pages/stats/StatsPerformance";
 import { StatsHistory } from "../pages/stats/StatsHistory";
 import { QuickActions } from "../pages/actions/Quick";
@@ -21,6 +22,7 @@ export const NAV_CONFIG = [
     icon: "◈",
     subtopics: [
       { id: "overview", label: "Overview", component: StatsOverview },
+      { id: "latest", label: "Latest Session", component: LatestSession },
       { id: "performance", label: "Performance", component: StatsPerformance },
       { id: "history", label: "History", component: StatsHistory },
     ],
