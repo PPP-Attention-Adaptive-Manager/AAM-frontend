@@ -438,3 +438,66 @@
     transform: translateY(0) scale(1);
   }
 }
+
+
+/* Timeline Chart Styles */
+.stats-timeline-chart {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  height: 140px;
+  margin: 20px 0;
+  padding: 10px 0;
+}
+
+.stats-timeline-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.stats-timeline-bar-inner {
+  width: 100%;
+  background: linear-gradient(180deg, #5c73d8 0%, #3d4fa0 100%);
+  border-radius: 6px 6px 0 0;
+  min-height: 12px;
+  transition: all 0.2s ease;
+}
+
+.stats-timeline-bar:hover .stats-timeline-bar-inner {
+  opacity: 0.8;
+}
+
+.stats-timeline-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  writing-mode: horizontal-tb;
+}
+
+/* Error Panel */
+.stats-panel-error {
+  border-color: rgba(217, 95, 89, 0.3);
+  background: linear-gradient(180deg, rgba(217, 95, 89, 0.08), rgba(217, 95, 89, 0.04));
+}
+
+.stats-panel-error p {
+  color: #d95f59;
+}
+
+/* Color Enhancements */
+.stats-bar-fill {
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.stats-metric-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, rgba(40, 41, 46, 0.96), rgba(30, 31, 36, 0.96));
+}
+
+.stats-panel:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}

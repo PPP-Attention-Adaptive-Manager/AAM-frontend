@@ -33,6 +33,16 @@ export async function getLatestSession() {
   return res.json();
 }
 
+export async function getSessionStats() {
+  const res = await fetch(`${API_URL}/session/stats`);
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.detail || "Failed to load session stats");
+  }
+
+  return res.json();
+}
+
 export async function stopSession() {
   const res = await fetch(`${API_URL}/session/stop`, {
     method: "POST",
